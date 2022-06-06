@@ -1,4 +1,4 @@
-from . import bottle
+import bottle
 import jwt
 
 class JWTPlugin():
