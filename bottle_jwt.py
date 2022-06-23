@@ -31,12 +31,14 @@ class JWTPlugin():
 
         return parts[1]
 
-    def getDecodedToken(self):
-        token = self.jwt_token_from_header()
-        try:
-            return jwt.decode(token, self.jwt_key, algorithms=["HS256"])
-        except:
-            return jwt.decode(token, self.jwt_key)
+    # def getDecodedToken(self):
+    #     token = self.jwt_token_from_header()
+    #     try:
+    #         return jwt.decode(token, self.jwt_key, algorithms=["HS256"])
+    #     except jwt.ExpiredSignatureError as e:
+    #         raise e
+    #     except:
+    #         return jwt.decode(token, self.jwt_key)
 
     def getToken(self, **kwargs):
         if self.debug:
@@ -75,17 +77,18 @@ class JWTPlugin():
                             return {"message": "authentication failed"}
                     except Exception as e:
                         bottle.response.status = 500
-                        return {"message": e}
+                        return {"message": str(e)}
             else:
                 # Checking for user
                 try:
-                    decoded = self.getDecodedToken()
+                    token = self.jwt_token_from_header()
+                    decoded = jwt.decode(token, self.jwt_key, algorithms=["HS256"])
                     bottle.request.__setattr__("user", decoded)
                 except Exception as e:
                     bottle.request.__setattr__("user", None)
                     if req_permissions:
                         bottle.response.status = 400
-                        return e.args[0]
+                        return {"message": e.args[0]}
                 # Checking for permssions
                 if req_permissions:
                     if self.debug:
