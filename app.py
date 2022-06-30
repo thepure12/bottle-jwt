@@ -1,22 +1,20 @@
 from bottle import Bottle, request
 from bottle_jwt import JWTPlugin
+from datetime import datetime, timedelta
 
 app = Bottle()
 
 def auth():
-    return { "permissions": "guest" }
+    return { "roles": ["guest"], "exp": datetime.utcnow() + timedelta(minutes=5) }
 
-def permiss():
-    return True
-
-plugin = JWTPlugin("changeme", auth, permissions_func=permiss)
+plugin = JWTPlugin("changeme")
 app.install(plugin)
 
-@app.route("/token", "POST")
+@app.route("/token", method=["GET", "POST"])
 def token():
     pass
 
-@app.route("/user", "GET", permissions="guest")
+@app.route("/user", "GET", roles="guest")
 def user():
     return {"user": request.user}
 
@@ -32,4 +30,4 @@ def gen_bool():
 def permiss_func():
     return {"msg": "Used the permssions function"}
 
-app.run(debug=True, reloader=True)
+app.run( host="0.0.0.0", debug=True, reloader=True)
