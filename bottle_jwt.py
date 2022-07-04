@@ -58,12 +58,21 @@ class JWTPlugin():
 
     def __init__(self, jwt_key, auth_func=None, token_path="token", alg="HS256", debug=False) -> None:
         self.jwt_key = jwt_key
-        self.auth_func = auth_func if auth_func else lambda: {
-                "exp": datetime.utcnow() + timedelta(minutes=5)
+        if not auth_func:
+            auth_func = lambda: {
+                "exp": datetime.utcnow() + timedelta(days=30)
             }
-        self.token_path = token_path
+        # self.token_path = token_path
+        self.token_paths = { token_path: auth_func }
         self.alg = alg
         self.debug = debug
+
+    def addTokenPath(self, token_path, auth_func=None):
+        if not auth_func:
+            auth_func = lambda: {
+                "exp": datetime.utcnow() + timedelta(days=30)
+            }
+        self.token_paths[token_path] = auth_func
 
     def getTokenFromHeader(self):
         auth = bottle.request.headers.get('Authorization', None)
@@ -81,10 +90,10 @@ class JWTPlugin():
 
         return parts[1] # "xxxxx.yyyyy.zzzzz"
 
-    def createToken(self, **kwargs):
+    def createToken(self, path, **kwargs):
         if self.debug:
-            print("bottle_jwt: Creating token.")
-        payload = self.auth_func(**kwargs)
+            print(f"bottle_jwt: Creating token for path '{path}'")
+        payload = self.token_paths[path](**kwargs)
         if payload:
             # If auth_func was succcessful, encode the payload
             # Figure out custom message for failed auth
@@ -93,12 +102,12 @@ class JWTPlugin():
         else:
             raise AuthFailed()
 
-    def handleTokenPath(self, route, **kwargs):
+    def handleTokenPath(self, path, route, **kwargs):
         if route.method == "GET":
             raise MethodNotAllowed()
         elif route.method == "POST":
             req_json = bottle.request.json if bottle.request.json else {}
-            token = self.createToken(**req_json, **kwargs)
+            token = self.createToken(path, **req_json, **kwargs)
             if token:
                 return {"token": token}
             else:
@@ -143,8 +152,8 @@ class JWTPlugin():
             roles = route.config.get("roles", None)
             if self.debug:
                 print(f"bottle_jwt: Checking if '{path}' is token path.")
-            if path == self.token_path:
-                return self.handleTokenPath(route, **kwargs)
+            if path in self.token_paths:
+                return self.handleTokenPath(path, route, **kwargs)
             else:
                 # Checking for user
                 decoded = self.decodeToken()

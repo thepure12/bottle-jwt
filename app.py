@@ -7,11 +7,16 @@ app = Bottle()
 def auth():
     return { "roles": ["guest"], "exp": datetime.utcnow() + timedelta(minutes=5) }
 
-plugin = JWTPlugin("changeme")
+plugin = JWTPlugin("changeme", debug=True)
+plugin.addTokenPath("app_token")
 app.install(plugin)
 
 @app.route("/token", method=["GET", "POST"])
 def token():
+    pass
+
+@app.route("/app_token", method=["GET", "POST"])
+def appToken():
     pass
 
 @app.route("/user", "GET", roles="guest")
