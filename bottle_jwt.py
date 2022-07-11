@@ -52,19 +52,20 @@ class ExpiredSignature(JWTError):
      def __init__(self) -> None:
         super().__init__("Signature has expired", 401)
 
+def authFunc():
+    return {
+        "exp": datetime.utcnow() + timedelta(days=30)
+    }
+
 class JWTPlugin():
     name = 'jwt'
     api = 2
 
-    def __init__(self, jwt_key, auth_func=None, token_path="token", alg="HS256", debug=False) -> None:
+    def __init__(self, jwt_key, auth_func=authFunc, token_path="token", alg="HS256", fail_redirect="", debug=False) -> None:
         self.jwt_key = jwt_key
-        if not auth_func:
-            auth_func = lambda: {
-                "exp": datetime.utcnow() + timedelta(days=30)
-            }
-        # self.token_path = token_path
         self.token_paths = { token_path: auth_func }
         self.alg = alg
+        self.fail_redirect = fail_redirect
         self.debug = debug
 
     def addTokenPath(self, token_path, auth_func=None):
@@ -74,10 +75,16 @@ class JWTPlugin():
             }
         self.token_paths[token_path] = auth_func
 
+    def handleException(self, exception):
+        if self.fail_redirect:
+            bottle.redirect(self.fail_redirect)
+        else:
+            raise exception
+
     def getTokenFromHeader(self):
         auth = bottle.request.headers.get('Authorization', None)
         if not auth:
-            raise AuthHeaderMissing()
+            self.handleException(AuthHeaderMissing())
 
         parts = auth.split() # ["Bearer", "xxxxx.yyyyy.zzzzz"] 
 
@@ -152,11 +159,11 @@ class JWTPlugin():
             roles = route.config.get("roles", None)
             if self.debug:
                 print(f"bottle_jwt: Checking if '{path}' is token path.")
+            # Checking for user
+            decoded = self.decodeToken()
             if path in self.token_paths:
                 return self.handleTokenPath(path, route, **kwargs)
             else:
-                # Checking for user
-                decoded = self.decodeToken()
                 # Checking for roles
                 if roles:
                     self.checkRoles(roles, route, decoded)
