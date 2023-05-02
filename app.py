@@ -1,5 +1,5 @@
 from bottle import Bottle, request
-from bottle_jwt import JWTPlugin
+from src.bottle_jwt import JWTPlugin
 from datetime import datetime, timedelta
 
 app = Bottle()
