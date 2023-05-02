@@ -19,7 +19,7 @@ def token():
 def appToken():
     pass
 
-@app.route("/user", "GET", roles="guest")
+@app.route("/user", "GET", roles=True)
 def user():
     return {"user": request.user}
 

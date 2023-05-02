@@ -5,17 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bottle_jwt"
 version = "0.0.1"
-authors = [
-  { name="TJ Renninger", email="renninger12@gmail.com" },
-]
+authors = [{ name = "TJ Renninger", email = "renninger12@gmail.com" }]
 description = "JWT for Bottle"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
 ]
-dependencies = [
-  "bottle"
-]
+dependencies = ["bottle", "PyJWT"]
