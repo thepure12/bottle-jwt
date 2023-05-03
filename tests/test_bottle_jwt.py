@@ -8,7 +8,6 @@ import json
 class TestBottleJWT(ServerTestBase):
     def setUp(self) -> None:
         super().setUp()
-        # self.app = bottle.Bottle(catchall=False)
         self.plugin = bottle_jwt.JWTPlugin("secret", debug=True)
         self.app.install(self.plugin)
         self.app.post("/token", callback=lambda: "")
@@ -27,23 +26,19 @@ class TestBottleJWT(ServerTestBase):
 
     def test_protected(self):
         self.createProtected()
-        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
-        self.assertBody("protected", "/protected", env=env)
+        self.assertBody("protected", "/protected", env=self.env)
 
     def test_protectedByRole(self):
         self.createProtected("admin")
         self.plugin.token_paths["token"] = lambda: {"roles": ["admin"]}
-        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
-        self.assertBody("protected", "/protected", env=env)
+        self.assertBody("protected", "/protected", env=self.env)
 
     def test_protectedByRoles(self):
         self.createProtected(["user", "admin"])
         self.plugin.token_paths["token"] = lambda: {"roles": ["admin"]}
-        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
-        self.assertBody("protected", "/protected", env=env)
+        self.assertBody("protected", "/protected", env=self.env)
         self.plugin.token_paths["token"] = lambda: {"roles": ["user"]}
-        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
-        self.assertBody("protected", "/protected", env=env)
+        self.assertBody("protected", "/protected", env=self.env)
 
     def test_authorizationMissing(self):
         self.createProtected()
@@ -51,8 +46,7 @@ class TestBottleJWT(ServerTestBase):
 
     def test_invalidAudience(self):
         self.createProtected("admin")
-        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
-        self.assertStatus(403, "/protected", env=env)
+        self.assertStatus(403, "/protected", env=self.env)
 
     def createProtected(self, roles=True):
         self.app.get("/protected", callback=lambda: "protected", roles=roles)
@@ -61,3 +55,7 @@ class TestBottleJWT(ServerTestBase):
         res = self.urlopen("/token", "POST")
         dict_body = json.loads(res["body"])
         return dict_body["token"]
+
+    @property
+    def env(self):
+        return {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
