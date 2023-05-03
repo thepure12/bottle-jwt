@@ -1,0 +1,173 @@
+{
+	"info": {
+		"_postman_id": "fbbb5327-043b-42d1-a3ce-09caa5c8e9a5",
+		"name": "bottle-jwt",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let res = pm.response;\r",
+							"if (res.code == 200)\r",
+							"{\r",
+							"    let data = res.json();\r",
+							"    pm.collectionVariables.set('bearer-token', data.token);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/token",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token2",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/token2",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"token2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/user",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token_protected",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/callable_roles/bool",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"callable_roles",
+						"bool"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "callable_roles (list)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/callable_roles/list",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"callable_roles",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "callable_roles (bool)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/callable_roles/bool",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"callable_roles",
+						"bool"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{bearer-token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "bearer-token",
+			"value": ""
+		}
+	]
+}
