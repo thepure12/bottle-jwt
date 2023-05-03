@@ -1,5 +1,5 @@
 from bottle import Bottle, request
-from src.bottle_jwt import JWTPlugin
+from src.bottle_jwt import JWTPlugin, AuthFailed
 from datetime import datetime, timedelta
 
 app = Bottle()
@@ -7,8 +7,12 @@ app = Bottle()
 def auth():
     return { "roles": ["guest"], "exp": datetime.utcnow() + timedelta(minutes=5) }
 
+def fail_auth(**kwargs):
+    raise AuthFailed() 
+
 plugin = JWTPlugin("changeme", auth_func=auth, debug=True)
 plugin.addTokenPath("token2", auth_func=auth)
+plugin.addTokenPath("token_fail", auth_func=fail_auth)
 app.install(plugin)
 
 @app.route("/token", method=["GET", "POST"])
@@ -16,6 +20,10 @@ def token():
     pass
 
 @app.route("/token2", method=["GET", "POST"])
+def token2():
+    pass
+
+@app.route("/token_fail", method=["GET", "POST"])
 def token2():
     pass
 

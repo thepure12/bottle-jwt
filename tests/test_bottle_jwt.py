@@ -17,6 +17,12 @@ class TestBottleJWT(ServerTestBase):
         dict_body = json.loads(res["body"])
         self.assertIn("token", dict_body)
 
+    def test_authFailed(self):
+        def auth():
+            raise bottle_jwt.AuthFailed()
+        self.plugin.token_paths["token"] = auth
+        self.assertStatus(401, "/token", method="POST")
+
     def test_getUser(self):
         self.app.get("/user", callback=lambda: getattr(bottle.request, "user"))
         env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
