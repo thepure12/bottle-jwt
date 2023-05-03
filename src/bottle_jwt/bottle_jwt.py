@@ -144,9 +144,12 @@ class JWTPlugin():
         if isinstance(decoded, Exception):
             # If decoding the token returned and exceptions
                 raise decoded
-        if callable(roles):
+        elif callable(roles):
             # If roles is a function
             roles = roles()
+        if isinstance(roles, bool) and decoded:
+            # Token required, but no role required
+            return
         roles = bottle.makelist(roles)
         user_roles = bottle.makelist(decoded.get("roles", True))
         if set(roles).isdisjoint(user_roles):

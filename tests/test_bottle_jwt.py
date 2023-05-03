@@ -1,8 +1,8 @@
-import unittest
 import bottle
 import src.bottle_jwt as bottle_jwt
 from tests.bottle_tools import ServerTestBase
 import json
+from datetime import datetime, timedelta
 
 
 class TestBottleJWT(ServerTestBase):
@@ -27,6 +27,9 @@ class TestBottleJWT(ServerTestBase):
     def test_protected(self):
         self.createProtected()
         self.assertBody("protected", "/protected", env=self.env)
+        # Protected without roles, but user has roles
+        self.plugin.token_paths["token"] = lambda: {"roles": ["admin"]}
+        self.assertBody("protected", "/protected", env=self.env)
 
     def test_protectedByRole(self):
         self.createProtected("admin")
@@ -40,6 +43,11 @@ class TestBottleJWT(ServerTestBase):
         self.plugin.token_paths["token"] = lambda: {"roles": ["user"]}
         self.assertBody("protected", "/protected", env=self.env)
 
+    def test_callableRoles(self):
+        roles = lambda: True
+        self.createProtected(roles)
+        self.assertBody("protected", "/protected", env=self.env)
+
     def test_authorizationMissing(self):
         self.createProtected()
         self.assertStatus(400, "/protected")
@@ -48,6 +56,14 @@ class TestBottleJWT(ServerTestBase):
         self.createProtected("admin")
         self.assertStatus(403, "/protected", env=self.env)
 
+    def test_expiredToken(self):
+        self.createProtected()
+        self.plugin.token_paths["token"] = lambda: {
+            "exp": datetime.utcnow() - timedelta(days=1)
+        }
+        self.assertStatus(401, "/protected", env=self.env)
+
+    # Helper functions
     def createProtected(self, roles=True):
         self.app.get("/protected", callback=lambda: "protected", roles=roles)
 
