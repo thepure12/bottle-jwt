@@ -56,7 +56,7 @@ def myAuth(username, password):
 ```
 
 ### Additional Token Paths
-It might be useful to have multiple token paths to enable the use of multiple auth functions. Each token path is mapped to one auth function but one auth function may be mapped to multiple token paths.
+It might be useful to have multiple token paths to enable the use of multiple auth functions. Each token path is mapped to one auth function but one auth function may be mapped to multiple token paths. Make sure additional token paths exist as Bottle routes.
 ```python
 plugin = JWTPlugin(jwt_key="changeme")
 plugin.addTokenPath("token2")

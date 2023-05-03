@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "bottle-jwt3"
 version = "0.0.1"
 authors = [{ name = "TJ Renninger", email = "renninger12@gmail.com" }]
-description = "JWT for Bottle"
+description = "JWT plugin for Bottle"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
