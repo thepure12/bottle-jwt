@@ -4,6 +4,7 @@ import src.bottle_jwt as bottle_jwt
 from tests.bottle_tools import ServerTestBase
 import json
 
+
 class TestBottleJWT(ServerTestBase):
     def setUp(self) -> None:
         super().setUp()
@@ -18,14 +19,45 @@ class TestBottleJWT(ServerTestBase):
         self.assertIn("token", dict_body)
 
     def test_getUser(self):
-        res = self.urlopen("/token", "POST")
-        dict_body = json.loads(res["body"])
-        token = dict_body["token"]
-        env = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
         self.app.get("/user", callback=lambda: getattr(bottle.request, "user"))
+        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
         res = self.urlopen("/user", env=env)
         dict_body = json.loads(res["body"])
         self.assertIn("exp", dict_body)
-    
-    def test_getProtected(self):
-        pass
+
+    def test_protected(self):
+        self.createProtected()
+        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
+        self.assertBody("protected", "/protected", env=env)
+
+    def test_protectedByRole(self):
+        self.createProtected("admin")
+        self.plugin.token_paths["token"] = lambda: {"roles": ["admin"]}
+        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
+        self.assertBody("protected", "/protected", env=env)
+
+    def test_protectedByRoles(self):
+        self.createProtected(["user", "admin"])
+        self.plugin.token_paths["token"] = lambda: {"roles": ["admin"]}
+        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
+        self.assertBody("protected", "/protected", env=env)
+        self.plugin.token_paths["token"] = lambda: {"roles": ["user"]}
+        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
+        self.assertBody("protected", "/protected", env=env)
+
+    def test_authorizationMissing(self):
+        self.createProtected()
+        self.assertStatus(400, "/protected")
+
+    def test_invalidAudience(self):
+        self.createProtected("admin")
+        env = {"HTTP_AUTHORIZATION": f"Bearer {self.getToken()}"}
+        self.assertStatus(403, "/protected", env=env)
+
+    def createProtected(self, roles=True):
+        self.app.get("/protected", callback=lambda: "protected", roles=roles)
+
+    def getToken(self) -> str:
+        res = self.urlopen("/token", "POST")
+        dict_body = json.loads(res["body"])
+        return dict_body["token"]

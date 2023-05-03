@@ -148,7 +148,7 @@ class JWTPlugin():
             # If roles is a function
             roles = roles()
         roles = bottle.makelist(roles)
-        user_roles = bottle.makelist(getattr(decoded, "roles", True))
+        user_roles = bottle.makelist(decoded.get("roles", True))
         if set(roles).isdisjoint(user_roles):
             # If user does not have required role
             raise InvalidAudience()
